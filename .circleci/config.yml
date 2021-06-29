@@ -1,0 +1,40 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+defaults: &defaults
+  working_directory: ~/repo
+  docker: # specify the version you desire here
+    - image: node:14
+
+version: 2
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: npm install
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: deploy
+          command: npm publish
+workflows:
+  version: 2
+  test-deploy:
+    jobs:
+      - test:
+          context: npm
+      - deploy:
+          context: npm
+          requires:
+            - test
+          filters:
+            branches:
+              only: internal
